@@ -9,7 +9,7 @@ namespace AdventOfCode2020.Tests
         public void Part1_Example()
         {
             var input =
-                new PuzzleInputLoader().GetInput<int>("Day1_Example")
+                PuzzleInputLoader.GetInput<int>("Day1_Example")
                                        .ToArray();
 
             var result = FixExpenseReport(input);
@@ -21,7 +21,7 @@ namespace AdventOfCode2020.Tests
         public void Part1_Solution()
         {
             var input = 
-                new PuzzleInputLoader().GetInput<int>("Day1_Input")
+                PuzzleInputLoader.GetInput<int>("Day1_Input")
                                        .ToArray();
 
             var result = FixExpenseReport(input);
@@ -33,7 +33,7 @@ namespace AdventOfCode2020.Tests
         public void Part2_Solution()
         {
             var input = 
-                new PuzzleInputLoader().GetInput<int>("Day1_Input")
+                PuzzleInputLoader.GetInput<int>("Day1_Input")
                                        .ToArray();
 
             var result = FixExpenseReportAdvanced(input);
