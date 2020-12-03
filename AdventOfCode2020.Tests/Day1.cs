@@ -46,31 +46,11 @@ namespace AdventOfCode2020.Tests
 
         private static int FixExpenseReport(int[] input)
         {
-            int result = 0;
-            for (int i = 0; i < input.Length; i++)
-            {
-                int value1 = input[i];
-                var subset = input.Skip(i + 1).ToArray();
-                //for (int j = i; j < input.Length; j++)
-                for (int j = 0; j < subset.Length; j++)
-                {
-                    var value2 = subset[j];
-
-                    if (value1 + value2 == 2020)
-                    {
-                        result = value1 * value2;
-
-                        break;
-                    }
-                }
-
-                if (result > 0)
-                {
-                    break;
-                }
-            }
-
-            return result;
+            return
+                input.SelectMany((x, i) => input.Skip(i + 1).Select(x2 => new {Value1 = x, Value2 = x2}))
+                     .Where(x => x.Value1 + x.Value2 == 2020)
+                     .Select(x => x.Value1 * x.Value2)
+                     .SingleOrDefault();
         }
     }
 }
