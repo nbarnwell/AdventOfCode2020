@@ -10,7 +10,7 @@ namespace AdventOfCode2020.Tests
         {
             foreach (var item in items)
             {
-                Console.WriteLine(item);
+                Console.WriteLine(" - " + item);
 
                 yield return item;
             }
