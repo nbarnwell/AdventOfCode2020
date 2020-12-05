@@ -23,10 +23,10 @@ namespace AdventOfCode2020.Tests
         }
 
         [Test]
-        [TestCase("Day4_Example", ExpectedResult = 2)]
+        [TestCase("Day4_Example", ExpectedResult                   = 2)]
         [TestCase("Day4_Example2_InvalidPassports", ExpectedResult = 0)]
-        [TestCase("Day4_Example2_ValidPassports", ExpectedResult = 4)]
-        [TestCase("Day4_Input", ExpectedResult   = 190)]
+        [TestCase("Day4_Example2_ValidPassports", ExpectedResult   = 4)]
+        [TestCase("Day4_Input", ExpectedResult                     = 121)]
         public int Part2(string inputFile)
         {
             var input = PuzzleInputLoader.GetInput<string>(inputFile);
@@ -44,7 +44,7 @@ namespace AdventOfCode2020.Tests
                 var number      = regexResult.Groups[1].Value;
                 var units       = regexResult.Groups[2].Value;
 
-                return units == uom && IsNumberBetween(number, lower, higher);
+                return regexResult.Success && units == uom && IsNumberBetween(number, lower, higher);
             }
 
             bool IsHeightInCentimetresBetween(string inputValue, int lower, int higher)
@@ -69,7 +69,7 @@ namespace AdventOfCode2020.Tests
 
             bool IsValidPassportId(string inputValue)
             {
-                return Regex.IsMatch(inputValue, @"\d{9}");
+                return Regex.IsMatch(inputValue, @"^\d{9}$");
             }
 
             var fields = new Dictionary<string, Predicate<string>>
@@ -84,30 +84,54 @@ namespace AdventOfCode2020.Tests
                 { "cid", s => true }
             };
 
+            Assert.IsTrue(fields["byr"]("2002"));
+            Assert.IsFalse(fields["byr"]("2003"));
+
+            Assert.IsTrue(fields["hgt"]("60in"));
+            Assert.IsTrue(fields["hgt"]("190cm"));
+            Assert.IsFalse(fields["hgt"]("190in"));
+            Assert.IsFalse(fields["hgt"]("190"));
+
+            Assert.IsTrue(fields["hcl"]("#123abc"));
+            Assert.IsFalse(fields["hcl"]("#123abz"));
+            Assert.IsFalse(fields["hcl"]("123abc"));
+
+            Assert.IsTrue(fields["ecl"]("brn"));
+            Assert.IsFalse(fields["ecl"]("wat"));
+
+            Assert.IsTrue(fields["pid"]("000000001"));
+            Assert.IsFalse(fields["pid"]("0123456789"));
+
             var requiredFields = fields.Keys.Where(x => x != "cid").ToArray();
 
             return GetPassports(input).Where(x => x.Keys.Intersect(requiredFields).Count() == requiredFields.Length)
-                                      .ForEach((x, idx) =>
-                                      {
-                                          Console.WriteLine($"Passport {idx}:");
-                                          var isPassportValid = true;
-                                          foreach (var kvp in x)
-                                          {
-                                              var isValid = fields[kvp.Key](kvp.Value);
+                                      .Where(x => x.All(kvp => fields[kvp.Key](kvp.Value)))
+                                      .ForEach(LogPassportData(fields))
+                                      .Count();
+        }
 
-                                              if (!isValid)
-                                              {
-                                                  isPassportValid = false;
-                                              }
+        private static Action<IDictionary<string, string>, int> LogPassportData(Dictionary<string, Predicate<string>> fields)
+        {
+            return (x, idx) =>
+            {
+                Console.WriteLine($"Passport {idx}:");
+                var isPassportValid = true;
+                foreach (var kvp in x)
+                {
+                    var isValid = fields[kvp.Key](kvp.Value);
 
-                                              var isValidText = isValid ? " (Valid)" : " (Invalid)";
-                                              Console.WriteLine($" - {kvp.Key} = {kvp.Value} {isValidText}");
-                                          }
+                    if (!isValid)
+                    {
+                        isPassportValid = false;
+                    }
 
-                                          var isPassportValidText = isPassportValid ? " Valid" : " Invalid";
-                                          Console.WriteLine($" Passport is {isPassportValidText}");
-                                      })
-                                      .Count(x => x.All(kvp => fields[kvp.Key](kvp.Value)));
+                    var isValidText = isValid ? " (Valid)" : " (Invalid)";
+                    Console.WriteLine($" - {kvp.Key} = {kvp.Value} {isValidText}");
+                }
+
+                var isPassportValidText = isPassportValid ? " Valid" : " Invalid";
+                Console.WriteLine($" Passport is {isPassportValidText}");
+            };
         }
 
         private IEnumerable<IDictionary<string, string>> GetPassports(IEnumerable<string> batchFile)
