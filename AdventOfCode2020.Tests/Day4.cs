@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
@@ -40,11 +39,10 @@ namespace AdventOfCode2020.Tests
 
             bool IsHeightBetween(string inputValue, int lower, int higher, string uom)
             {
-                var regexResult = Regex.Match(inputValue, @"(\d+)(cm|in)");
+                var regexResult = Regex.Match(inputValue, @"^(\d+)" + uom + "$");
                 var number      = regexResult.Groups[1].Value;
-                var units       = regexResult.Groups[2].Value;
 
-                return regexResult.Success && units == uom && IsNumberBetween(number, lower, higher);
+                return regexResult.Success && IsNumberBetween(number, lower, higher);
             }
 
             bool IsHeightInCentimetresBetween(string inputValue, int lower, int higher)
@@ -59,12 +57,12 @@ namespace AdventOfCode2020.Tests
 
             bool IsValidHairColour(string inputValue)
             {
-                return Regex.IsMatch(inputValue, @"#[a-f0-9]{6}");
+                return Regex.IsMatch(inputValue, @"^#[a-f0-9]{6}$");
             }
 
             bool IsValidEyeColour(string inputValue)
             {
-                return Regex.IsMatch(inputValue, @"amb|blu|brn|gry|grn|hzl|oth");
+                return Regex.IsMatch(inputValue, @"^(?:amb|blu|brn|gry|grn|hzl|oth)$");
             }
 
             bool IsValidPassportId(string inputValue)
@@ -104,34 +102,9 @@ namespace AdventOfCode2020.Tests
 
             var requiredFields = fields.Keys.Where(x => x != "cid").ToArray();
 
-            return GetPassports(input).Where(x => x.Keys.Intersect(requiredFields).Count() == requiredFields.Length)
-                                      .Where(x => x.All(kvp => fields[kvp.Key](kvp.Value)))
-                                      .ForEach(LogPassportData(fields))
-                                      .Count();
-        }
-
-        private static Action<IDictionary<string, string>, int> LogPassportData(Dictionary<string, Predicate<string>> fields)
-        {
-            return (x, idx) =>
-            {
-                Console.WriteLine($"Passport {idx}:");
-                var isPassportValid = true;
-                foreach (var kvp in x)
-                {
-                    var isValid = fields[kvp.Key](kvp.Value);
-
-                    if (!isValid)
-                    {
-                        isPassportValid = false;
-                    }
-
-                    var isValidText = isValid ? " (Valid)" : " (Invalid)";
-                    Console.WriteLine($" - {kvp.Key} = {kvp.Value} {isValidText}");
-                }
-
-                var isPassportValidText = isPassportValid ? " Valid" : " Invalid";
-                Console.WriteLine($" Passport is {isPassportValidText}");
-            };
+            return GetPassports(input)
+                   .Where(x => x.Keys.Intersect(requiredFields).Count() == requiredFields.Length)
+                   .Count(x => x.All(kvp => fields[kvp.Key](kvp.Value)));
         }
 
         private IEnumerable<IDictionary<string, string>> GetPassports(IEnumerable<string> batchFile)
