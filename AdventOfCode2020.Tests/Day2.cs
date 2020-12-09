@@ -12,7 +12,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day2_Input", ExpectedResult = 548)]
         public int Check_sled_rental_place_passwords(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile);
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
 
             var result =
                 input.Select(x => Regex.Match(x, @"^(\d+)-(\d+) (\w): (\w+)$"))
@@ -42,7 +42,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day2_Input", ExpectedResult = 502)]
         public int Check_toboggan_rental_place_passwords(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile);
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
 
             var result =
                 input.Select(x => Regex.Match(x, @"^(\d+)-(\d+) (\w): (\w+)$"))

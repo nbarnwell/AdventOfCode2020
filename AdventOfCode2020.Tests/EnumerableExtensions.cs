@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AdventOfCode2020.Tests
 {
@@ -10,7 +11,18 @@ namespace AdventOfCode2020.Tests
         {
             foreach (var item in items)
             {
-                Console.WriteLine(" - " + item);
+                if (item is IEnumerable anEnumerable && !typeof(string).IsAssignableFrom(typeof(T)))
+                {
+                    Console.WriteLine(" - Enumerable:" + item);
+                    foreach (var subItem in anEnumerable)
+                    {
+                        Console.WriteLine("  - " + subItem);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine(" - " + item);
+                }
 
                 yield return item;
             }

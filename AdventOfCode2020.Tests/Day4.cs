@@ -13,7 +13,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day4_Input", ExpectedResult   = 190)]
         public int Part1(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile);
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
 
             var fields         = new[] { "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid" };
             var requiredFields = fields.Where(x => x != "cid").ToArray();
@@ -28,7 +28,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day4_Input", ExpectedResult                     = 121)]
         public int Part2(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile);
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
 
             bool IsNumberBetween(string inputValue, int lower, int higher)
             {

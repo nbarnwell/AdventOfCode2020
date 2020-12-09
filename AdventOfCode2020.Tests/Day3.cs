@@ -11,7 +11,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day3_Input", ExpectedResult = 286)]
         public int Part1(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile).ToArray();
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile).ToArray();
 
             return Enumerable.Range(0, input.Count())
                       .Select(row => new {X = (row * 3) % input[row].Length, Y = row})
@@ -26,7 +26,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day3_Example", 1, 2, ExpectedResult = 2)]
         public long Part2(string inputFile, int advanceX, int advanceY)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile).ToArray();
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile).ToArray();
 
             return CountTreeHits(advanceX, advanceY, input);
         }
@@ -36,7 +36,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day3_Input", ExpectedResult = 3638606400)]
         public long Part2_Solution(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile).ToArray();
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile).ToArray();
 
             var slopes = new[]
             {

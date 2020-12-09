@@ -85,7 +85,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day5_Input", ExpectedResult = 991)]
         public int Part1_Solution(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile);
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
 
             return input.Max(x => Seat.FromBoardingPassReference(x).Id);
         }
@@ -94,7 +94,7 @@ namespace AdventOfCode2020.Tests
         [TestCase("Day5_Input", ExpectedResult = 534)]
         public int Part2(string inputFile)
         {
-            var input = PuzzleInputLoader.GetInput<string>(inputFile);
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
 
             var takenSeats = input.Select(Seat.FromBoardingPassReference)
                                   .ToDictionary(x => x.Id);
