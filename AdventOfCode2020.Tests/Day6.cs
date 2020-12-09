@@ -17,8 +17,19 @@ namespace AdventOfCode2020.Tests
             var questions = Enumerable.Range('a', 'z').Select(Convert.ToChar);
 
             return GetGroupedResponses(input).Select(group => string.Join("", group))
-                                             .LogToConsole()
                                              .Select(response => questions.Where(response.Contains).Count())
+                                             .Sum();
+        } 
+
+        [Test]
+        [TestCase("Day6_Example", ExpectedResult = 6)]
+        [TestCase("Day6_Input", ExpectedResult = 3427)]
+        public int Part2(string inputFile)
+        {
+            var input     = PuzzleInputLoader.GetInputWhole(inputFile);
+            var questions = Enumerable.Range('a', 'z').Select(Convert.ToChar);
+
+            return GetGroupedResponses(input).Select(group => questions.Count(q => group.All(g => g.Contains(q))))
                                              .Sum();
         } 
         
@@ -27,6 +38,5 @@ namespace AdventOfCode2020.Tests
             return Regex.Split(input, @"\r\n\r\n", RegexOptions.Multiline)
                         .Select(x => Regex.Split(x, @"\r\n", RegexOptions.Multiline));
         }
-
     }
 }
