@@ -43,6 +43,7 @@ namespace AdventOfCode2020.Tests
 		
         private static int FixExpenseReport(int[] input)
         {
+            // Trick is to get all combinations by listing each number with all the numbers following it
             return
                 input.SelectMany((x, i) => input.Skip(i + 1).Select(x2 => new {Value1 = x, Value2 = x2}))
                      .Where(x => x.Value1 + x.Value2 == 2020)
@@ -52,6 +53,7 @@ namespace AdventOfCode2020.Tests
 		
         private static int FixExpenseReportAdvanced(int[] input)
         {
+            // Same as above, but combinations of 3 numbers that add up to 2020
             return
                 input.SelectMany(
                          (x1, i1) =>
