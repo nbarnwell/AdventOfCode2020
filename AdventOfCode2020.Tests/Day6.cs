@@ -41,8 +41,8 @@ namespace AdventOfCode2020.Tests
         
         private IEnumerable<IEnumerable<string>> GetGroupedResponses(string input)
         {
-            return Regex.Split(input, @"\r\n\r\n", RegexOptions.Multiline)
-                        .Select(x => Regex.Split(x, @"\r\n", RegexOptions.Multiline));
+            return Regex.Split(input, $"{Environment.NewLine}{Environment.NewLine}", RegexOptions.Multiline)
+                        .Select(x => Regex.Split(x, $"{Environment.NewLine}", RegexOptions.Multiline));
         }
     }
 }
