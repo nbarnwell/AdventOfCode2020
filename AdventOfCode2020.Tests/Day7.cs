@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
@@ -15,86 +17,169 @@ namespace AdventOfCode2020.Tests
         {
             var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
 
-            var rules = ParseRules(input);
+            var graph = BuildGraph(input);
 
-            var graph = rules.ToDictionary(r => r.Source);
+            var shinyGold = graph.Nodes.Single(x => x.BagColor == BagColor.ShinyGold);
 
+            var acc = new Accumulator();
+            GetNumberOfTopLevelBags(graph, shinyGold, acc);
 
-            return -1;
+            return acc.Value;
         }
 
-        [Test]
-        public void Convert_colour_description_to_colour_name()
+        private void GetNumberOfTopLevelBags(Graph graph, Node node, Accumulator accumulator)
         {
-            Assert.AreEqual("BrightWhite", Regex.Replace("bright white", @"(\b| )(\w)", m => m.Groups[2].Value.ToUpperInvariant()));
-        }
-
-        public class BagNode
-        {
-            public BagColor BagColor { get; }
-
-            public BagNode(BagColor bagColor)
+            var inRelationships = graph.InRelationships(node).ToList();
+            if (!inRelationships.Any())
             {
-                BagColor = bagColor;
+                // This is a top-level container/bag
+                accumulator.Increment();
             }
-        }
-
-        public class BagRelationship    
-        {
-            public int Quantity { get; }
-            public Relationship Relationship { get; }
-
-            public BagRelationship(int quantity, Relationship relationship)
+            else
             {
-                Quantity     = quantity;
-                Relationship = relationship;
-            }
-        }
-
-        private IEnumerable<BagRule> ParseRules(IEnumerable<string> input)
-        {
-            foreach (var item in input)
-            {
-                var cleaned         = Regex.Replace(item, @"\bbag(s){0,1}\b", "").Replace(".", "");
-                var split           = Regex.Split(cleaned, @"\bcontain\b").Select(x => x.Trim()).ToArray();
-                var container       = Regex.Replace(split[0], @"(\b| )(\w)", m => m.Groups[2].Value.ToUpperInvariant());
-
-                var containerColour = Enum.Parse<BagColor>(container);
-
-                var relationships =
-                    split[1].Split(',').Select(x => x.Trim())
-                            .Select(x => Regex.Match(x, @"(\d+) ([\w ]+)"))
-                            .Select(x => new BagRule(containerColour, Relationship.Contains,
-                                                     Enum.Parse<BagColor>(x.Groups[2].Value),
-                                                     int.Parse(x.Groups[1].Value)));
-
-                foreach (var relationship in relationships)
+                foreach (var relationship in inRelationships)
                 {
-                    yield return relationship;
+                    GetNumberOfTopLevelBags(graph, relationship.From, accumulator);
                 }
             }
         }
 
-        public class BagRule
+        private class Accumulator
         {
-            public BagColor Source { get; }
-            public Relationship Relationship { get; }
-            public BagColor Destination { get; }
+            private int _value;
 
-            public BagRule(BagColor source, Relationship relationship, BagColor destination, int quantity)
+            public int Value => _value;
+
+            public void Increment()
             {
-                Source       = source;
-                Relationship = relationship;
-                Destination  = destination;
-                Quantity     = quantity;
+                _value++;
             }
-
-            public int Quantity { get; }
         }
 
-        public enum Relationship
+        private string ToPascalCase(string input)
         {
-            Contains
+            return Regex.Replace(input, @"(\b| )(\w)", m => m.Groups[2].Value.ToUpperInvariant());
+        }
+
+        private BagColor ParseBagColor(string input)
+        {
+            return Enum.Parse<BagColor>(ToPascalCase(input));
+        }
+
+        private Graph BuildGraph(IEnumerable<string> input)
+        {
+            var graph = new Graph();
+
+            foreach (var item in input)
+            {
+                var cleaned        = Regex.Replace(item, @"\bbag(s){0,1}\b", "").Replace(".", "");
+                var split          = Regex.Split(cleaned, @"\bcontain\b").Select(x => x.Trim()).ToArray();
+                var containerColor = ParseBagColor(split[0]);
+                var containerNode  = graph.AddNode(new Node(containerColor));
+
+                var matches =
+                    split[1].Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim())
+                            .Select(x => Regex.Match(x, @"^(\d+) ([\w ]+)$"))
+                            .Where(x => x.Success);
+
+                foreach (var match in matches)
+                {
+                    var toNode = graph.AddNode(new Node(ParseBagColor(match.Groups[2].Value)));
+
+                    var r = graph.AddRelationship(containerNode, RelationshipType.Contains, toNode);
+                    // quantity = int.Parse(x.Groups[1].Value),
+                }
+            }
+
+            return graph;
+        }
+
+        public class Graph
+        {
+            private readonly IDictionary<BagColor, Node> _nodes = new Dictionary<BagColor, Node>();
+
+            private readonly IDictionary<Tuple<BagColor, RelationshipType, BagColor>, Relationship> _relationships =
+                new Dictionary<Tuple<BagColor, RelationshipType, BagColor>, Relationship>();
+
+            public IEnumerable<Node> Nodes => _nodes.Values;
+
+            public Node AddNode(Node node)
+            {
+                if (_nodes.TryGetValue(node.BagColor, out var found))
+                {
+                    return found;
+                }
+
+                _nodes.Add(node.BagColor, node);
+                return node;
+            }
+
+            public Relationship AddRelationship(Node from, RelationshipType type, Node to)
+            {
+                var key = Tuple.Create(from.BagColor, type, to.BagColor);
+
+                if (_relationships.TryGetValue(key, out var found))
+                {
+                    return found;
+                }
+
+                var relationship = new Relationship(from, type, to);
+                _relationships.Add(key, relationship);
+                return relationship;
+            }
+
+            public IEnumerable<Relationship> InRelationships(Node node)
+            {
+                var result = _relationships.Values.Where(x => x.To == node).ToList();
+                return result;
+            }
+        }
+
+        public class Node
+        {
+            public BagColor BagColor { get; }
+
+            public Node(BagColor bagColor)
+            {
+                BagColor = bagColor;
+            }
+
+            public override string ToString()
+            {
+                return BagColor.ToString();
+            }
+
+            protected bool Equals(Node other)
+            {
+                return BagColor == other.BagColor;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((Node)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return (int)BagColor;
+            }
+        }
+
+        public class Relationship
+        {
+            public Node From { get; }
+            public RelationshipType Type { get; }
+            public Node To { get; }
+
+            public Relationship(Node from, RelationshipType type, Node to)
+            {
+                From = from;
+                Type = type;
+                To   = to;
+            }
         }
 
         public enum BagColor
@@ -109,5 +194,10 @@ namespace AdventOfCode2020.Tests
             FadedBlue,
             DottedBlack
         }
+    }
+
+    public enum RelationshipType
+    {
+        Contains
     }
 }
