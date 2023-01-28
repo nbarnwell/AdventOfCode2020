@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
@@ -17,11 +15,6 @@ namespace AdventOfCode2020.Tests
         public int Part1(string inputFile)
         {
             var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
-
-            //foreach (var name in PrintBagColorNames(input).Select(ToPascalCase).Distinct())
-            //{
-            //    Console.WriteLine($"{name},");
-            //}
 
             var graph = BuildGraph(input);
 
@@ -56,13 +49,14 @@ namespace AdventOfCode2020.Tests
             return Enum.Parse<BagColor>(ToPascalCase(input));
         }
 
-        private IEnumerable<string> PrintBagColorNames(IEnumerable<string> input)
+        private void PrintBagColorNames(IEnumerable<string> input)
         {
+            var list = new List<BagColor>();
             foreach (var item in input)
             {
                 var cleaned        = Regex.Replace(item, @"\bbag(s){0,1}\b", "").Replace(".", "");
                 var split          = Regex.Split(cleaned, @"\bcontain\b").Select(x => x.Trim()).ToArray();
-                yield return split[0];
+                list.Add(ParseBagColor(split[0]));
 
                 var matches =
                     split[1].Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim())
@@ -71,8 +65,13 @@ namespace AdventOfCode2020.Tests
 
                 foreach (var match in matches)
                 {
-                    yield return match.Groups[2].Value;
+                    list.Add(ParseBagColor(match.Groups[2].Value));
                 }
+            }
+
+            foreach (var color in list.Distinct())
+            {
+                Console.WriteLine("{0},", color);
             }
         }
 
