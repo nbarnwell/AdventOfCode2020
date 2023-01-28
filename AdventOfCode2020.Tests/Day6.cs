@@ -14,7 +14,10 @@ namespace AdventOfCode2020.Tests
         public int Part1(string inputFile)
         {
             var input     = PuzzleInputLoader.GetInputWhole(inputFile);
-            var questions = Enumerable.Range('a', 'z').Select(Convert.ToChar);
+            var questions = new[]
+            {
+                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+            };
 
             return GetGroupedResponses(input).Select(group => string.Join("", group))
                                              .Select(response => questions.Where(response.Contains).Count())
@@ -27,7 +30,10 @@ namespace AdventOfCode2020.Tests
         public int Part2(string inputFile)
         {
             var input     = PuzzleInputLoader.GetInputWhole(inputFile);
-            var questions = Enumerable.Range('a', 'z').Select(Convert.ToChar);
+            var questions = new[]
+            {
+                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+            };
 
             return GetGroupedResponses(input).Select(group => questions.Count(q => group.All(g => g.Contains(q))))
                                              .Sum();

@@ -20,9 +20,7 @@ namespace AdventOfCode2020.Tests
         {
             var filename = $"{name}.txt";
 
-            var text = File.ReadAllText(filename);
-            Console.WriteLine($"Contents of {filename}:{Environment.NewLine}{text}");
-            return text;
+            return File.ReadAllText(filename);
         }
     }
 }
