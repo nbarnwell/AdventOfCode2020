@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
@@ -25,6 +26,61 @@ namespace AdventOfCode2020.Tests
             return result;
         }
 
+        [Test]
+        [TestCase("Day7_Example", ExpectedResult = 32)]
+        [TestCase("Day7_Example2", ExpectedResult = 126)]
+        [TestCase("Day7_Input", ExpectedResult = 108636)]
+        public int Part2(string inputFile)
+        {
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
+
+            var graph = BuildGraph(input);
+
+            var shinyGold = graph.Nodes.Single(x => x.BagColor == BagColor.ShinyGold);
+
+            var result = GetBagsRequiredToHave(graph, shinyGold).Sum();
+
+            return result;
+        }
+
+        [Test]
+        [TestCase("Day7_Example")]
+        [TestCase("Day7_Example2")]
+        [TestCase("Day7_Input")]
+        public void Test_PlantUML_Generation(string inputFile)
+        {
+            var input = PuzzleInputLoader.GetInputLines<string>(inputFile);
+
+            var graph = BuildGraph(input);
+
+            var shinyGold = graph.Nodes.Single(x => x.BagColor == BagColor.ShinyGold);
+
+            var report = new StringBuilder();
+            report.AppendLine("@startuml");
+
+            GeneratePlantUml(graph, shinyGold, report);
+
+            report.AppendLine("@enduml");
+
+            Console.WriteLine(report.ToString());
+        }
+
+        private IEnumerable<int> GetBagsRequiredToHave(Graph graph, Node node, int multiplier = 1)
+        {
+            var outRelationships = graph.OutRelationships(node).ToList();
+            foreach (var relationship in outRelationships)
+            {
+                var value = relationship.Quantity * multiplier;
+                Console.WriteLine(value);
+                yield return value;
+
+                foreach (var result in GetBagsRequiredToHave(graph, relationship.To, value))
+                {
+                    yield return result;
+                }
+            }
+        }
+
         private IEnumerable<BagColor> GetNumberOfTopLevelBags(Graph graph, Node node)
         {
             var inRelationships = graph.InRelationships(node).ToList();
@@ -36,6 +92,17 @@ namespace AdventOfCode2020.Tests
                 {
                     yield return result;
                 }
+            }
+        }
+
+        private void GeneratePlantUml(Graph graph, Node node, StringBuilder report)
+        {
+            var relationships = graph.OutRelationships(node).ToList();
+            foreach (var relationship in relationships)
+            {
+                report.AppendLine($"{relationship.From.BagColor} \"1\" *-- \"{relationship.Quantity}\" {relationship.To.BagColor} : contains");
+
+                GeneratePlantUml(graph, relationship.To, report);
             }
         }
 
@@ -54,8 +121,8 @@ namespace AdventOfCode2020.Tests
             var list = new List<BagColor>();
             foreach (var item in input)
             {
-                var cleaned        = Regex.Replace(item, @"\bbag(s){0,1}\b", "").Replace(".", "");
-                var split          = Regex.Split(cleaned, @"\bcontain\b").Select(x => x.Trim()).ToArray();
+                var cleaned = Regex.Replace(item, @"\bbag(s){0,1}\b", "").Replace(".", "");
+                var split   = Regex.Split(cleaned, @"\bcontain\b").Select(x => x.Trim()).ToArray();
                 list.Add(ParseBagColor(split[0]));
 
                 var matches =
@@ -93,10 +160,10 @@ namespace AdventOfCode2020.Tests
 
                 foreach (var match in matches)
                 {
-                    var toNode = graph.AddNode(new Node(ParseBagColor(match.Groups[2].Value)));
+                    var toNode   = graph.AddNode(new Node(ParseBagColor(match.Groups[2].Value)));
+                    var quantity = int.Parse(match.Groups[1].Value);
 
-                    var r = graph.AddRelationship(containerNode, RelationshipType.Contains, toNode);
-                    // quantity = int.Parse(x.Groups[1].Value),
+                    var r = graph.AddRelationship(containerNode, RelationshipType.Contains, quantity, toNode);
                 }
             }
 
@@ -123,7 +190,7 @@ namespace AdventOfCode2020.Tests
                 return node;
             }
 
-            public Relationship AddRelationship(Node from, RelationshipType type, Node to)
+            public Relationship AddRelationship(Node from, RelationshipType type, int quantity, Node to)
             {
                 var key = Tuple.Create(from.BagColor, type, to.BagColor);
 
@@ -132,9 +199,15 @@ namespace AdventOfCode2020.Tests
                     return found;
                 }
 
-                var relationship = new Relationship(from, type, to);
+                var relationship = new Relationship(from, type, quantity, to);
                 _relationships.Add(key, relationship);
                 return relationship;
+            }
+
+            public IEnumerable<Relationship> OutRelationships(Node node)
+            {
+                var result = _relationships.Values.Where(x => x.From == node).ToList();
+                return result;
             }
 
             public IEnumerable<Relationship> InRelationships(Node node)
@@ -182,12 +255,14 @@ namespace AdventOfCode2020.Tests
             public Node From { get; }
             public RelationshipType Type { get; }
             public Node To { get; }
+            public int Quantity { get; }
 
-            public Relationship(Node from, RelationshipType type, Node to)
+            public Relationship(Node from, RelationshipType type, int quantity, Node to)
             {
-                From = from;
-                Type = type;
-                To   = to;
+                From     = from;
+                Type     = type;
+                Quantity = quantity;
+                To       = to;
             }
         }
 
